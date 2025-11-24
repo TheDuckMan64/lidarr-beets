@@ -143,12 +143,13 @@ if lidarr['torrent_hash']:
         origin_file = os.path.join(album_path, "origin-" + tracker + ".yaml")
         if not os.path.isfile(origin_file):
             logging.info(f"Looking for origin data on {tracker.upper()}")
-            cmd = ["gazelle-origin", "-o", origin_file, "--tracker", tracker, "--api-key", api_keys[tracker],
-                   lidarr['torrent_hash']]
-            process = subprocess.run(cmd, capture_output=True, text=True)
-            if process.returncode:
-                logging.warning(f"gazelle-origin-{tracker.upper()}: {process.stderr.strip()}")
-            elif os.path.isfile(origin_file):
+            try:
+                process = subprocess.run(cmd, stdin=subprocess.DEVNULL,
+                             capture_output=True, text=True)
+            except Exception as e:
+                logging.warning(f"gazelle-origin-{tracker.upper()} crashed: {e}")
+                continue
+            if os.path.isfile(origin_file):
                 logging.info(f'Origin data saved at "{origin_file}"')
                 break
         else:
